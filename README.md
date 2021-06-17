@@ -1,2 +1,2 @@
 # RTCSV
-A Real Time Clock in System Verilog, that drives 6 BCD displays. It is meant to help verify an accurate crystal oscillator PCB RTC I am designing.
+A Real Time Clock in System Verilog, that drives 6 BCD displays. Initially it was meant to help verify a PCB version with basic CMOS counters and logic gate ICs but due the differences in design flow the idea was scraped.
