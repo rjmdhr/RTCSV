@@ -7,7 +7,7 @@
 // DE2-115 SOC board
 // note: switches are default logic 0 when in "down position"
 //       buttons are active low (logic high when not pressed)
-module RTCDriver(
+module rtc_driver(
 	input logic clock50MHz, //50 MHz clock
 	input logic [2:0] push_button, //increase digit
 	input logic reset_button, // master reset
