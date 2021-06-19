@@ -1,0 +1,35 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dE:/University/Projects/RTCSV
+vRTCDriver
+DXx6 sv_std 3 std 0 22 WmjPaeP=7F5?QFXzJ>D[Q2
+!s110 1624140051
+!i10b 1
+!s100 =h9HG2moL87WeDHYmWRCI2
+Im@RL85eekDMhd^a_2I^AX1
+VDg1SIo80bB@j0V0VzS_@n1
+!s105 rtcsv_sv_unit
+S1
+R0
+w1624139436
+8E:\University\Projects\RTCSV\rtcsv.sv
+FE:\University\Projects\RTCSV\rtcsv.sv
+L0 10
+OP;L;10.4a;61
+r1
+!s85 0
+31
+!s108 1624140050.000000
+!s107 E:\University\Projects\RTCSV\rtcsv.sv|
+!s90 -reportprogress|300|-work|work|-sv|-stats=none|E:\University\Projects\RTCSV\rtcsv.sv|
+!s101 -O0
+!i113 1
+o-work work -sv -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
+n@r@t@c@driver
