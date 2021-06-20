@@ -80,7 +80,7 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : clock_buf_1Hz
 end
 // generate the 20ns pulse for the counter
 always_comb begin : counter_enable
-	count_en = clock1Hz & ~clock1Hzbuf;
+	count_en = clock1Hz && ~clock1Hzbuf; //logical, not bitwise
 end
 
 /** HH:MM:SS counters */
@@ -91,10 +91,54 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : seconds_counter
         sec_ctr_1 <= 4'd0;
 	end
 	else begin
-		if (man_switch && count_en) begin
-            sec_ctr_0 <= sec_ctr_0 + 4'd1;
+        // auto
+		if (~man_switch) begin
+            if (count_en) begin
+                if (sec_ctr_0 == 4'd0)
+                    sec_ctr_0 <= sec_ctr_0 + 4'd1;
+                else if (sec_ctr_0 == 4'd9) begin
+                    if (sec_ctr_1 == 4'd5) begin
+                        sec_ctr_0 <= 4'd0;
+                        sec_ctr_1 <= 4'd0;
+                    end
+                    else
+                        sec_ctr_1 <= sec_ctr_1 + 4'd1;
+                end
+            end
 		end
+        // manual
+        else begin
+            
+        end
 	end
+end
+// minutes counter
+always_ff @(posedge clock50MHz or negedge resetn) begin : minutes_counter
+    if (resetn == 1'b0) begin
+        min_ctr_0 <= 4'd0;
+        min_ctr_1 <= 4'd0;
+    end
+    else begin
+        // auto
+        if (~man_switch) begin
+            if (count_en) begin
+                if (sec_ctr_1 == 4'd5 && sec_ctr_0 == 4'd9) begin
+                    if (min_ctr_1 == 4'd5 && min_ctr_0 == 4'd9) begin
+                        min_ctr_0 <= 4'd0;
+                        min_ctr_1 <= 4'd0;
+                    end 
+                end
+            end
+        end
+        // manual
+        else begin
+            
+        end
+    end
+end
+// hours counter
+always_ff @(posedge clock50MHz or negedge resetn) begin : hours_counter
+    
 end
 
 
