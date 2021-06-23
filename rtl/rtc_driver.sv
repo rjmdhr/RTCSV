@@ -34,7 +34,7 @@ logic [3:0] sec_ctr_0; //1s column of seconds
 logic [3:0] sec_ctr_1; //10s column of seconds
 logic [3:0] min_ctr_0; //1s column of minutes
 logic [3:0] min_ctr_1; //10s column of minutes
-logic [3:0] hr_ctr_0; //1s column of hours
+logic [1:0] hr_ctr_0; //1s column of hours
 logic [3:0] hr_ctr_1; //10s column of hours
 
 //seven segment register pinouts
@@ -84,61 +84,99 @@ always_comb begin : counter_enable
 end
 
 /** HH:MM:SS counters */
-// seconds counter
+// seconds counter - increments and resets at 59
 always_ff @(posedge clock50MHz or negedge resetn) begin : seconds_counter
 	if (resetn == 1'b0) begin
 		sec_ctr_0 <= 4'd0;
-        sec_ctr_1 <= 4'd0;
+		sec_ctr_1 <= 4'd0;
 	end
 	else begin
-        // auto
+		// auto
 		if (~man_switch) begin
-            if (count_en) begin
-                if (sec_ctr_0 == 4'd0)
-                    sec_ctr_0 <= sec_ctr_0 + 4'd1;
-                else if (sec_ctr_0 == 4'd9) begin
-                    if (sec_ctr_1 == 4'd5) begin
-                        sec_ctr_0 <= 4'd0;
-                        sec_ctr_1 <= 4'd0;
-                    end
-                    else
-                        sec_ctr_1 <= sec_ctr_1 + 4'd1;
-                end
-            end
+			if (count_en) begin
+				if (sec_ctr_0 < 4'd9)
+					sec_ctr_0 <= sec_ctr_0 + 4'd1;
+				else if (sec_ctr_0 == 4'd9) begin
+					if (sec_ctr_1 == 4'd5) begin
+						sec_ctr_0 <= 4'd0;
+						sec_ctr_1 <= 4'd0;
+					end
+					else
+						sec_ctr_1 <= sec_ctr_1 + 4'd1;
+				end
+			end
 		end
-        // manual
-        else begin
-            
-        end
+		// manual
+		else begin
+			
+		end
 	end
 end
-// minutes counter
+// minutes counter - increments every minute at the seconds reset
 always_ff @(posedge clock50MHz or negedge resetn) begin : minutes_counter
-    if (resetn == 1'b0) begin
-        min_ctr_0 <= 4'd0;
-        min_ctr_1 <= 4'd0;
-    end
-    else begin
-        // auto
-        if (~man_switch) begin
-            if (count_en) begin
-                if (sec_ctr_1 == 4'd5 && sec_ctr_0 == 4'd9) begin
-                    if (min_ctr_1 == 4'd5 && min_ctr_0 == 4'd9) begin
-                        min_ctr_0 <= 4'd0;
-                        min_ctr_1 <= 4'd0;
-                    end 
-                end
-            end
-        end
-        // manual
-        else begin
-            
-        end
-    end
+	if (resetn == 1'b0) begin
+		min_ctr_0 <= 4'd0;
+		min_ctr_1 <= 4'd0;
+	end
+	else begin
+		// auto
+		if (~man_switch) begin
+			if (count_en) begin
+				if (sec_ctr_1 == 4'd5 && sec_ctr_0 == 4'd9) begin
+					if (min_ctr_1 == 4'd5 && min_ctr_0 == 4'd9) begin
+						min_ctr_0 <= 4'd0;
+						min_ctr_1 <= 4'd0;
+					end
+					else begin
+						if (min_ctr_0 < 4'd9)
+							min_ctr_0 <= min_ctr_0 + 4'd1;
+						else if (min_ctr_0 == 4'd9) begin
+							min_ctr_0 <= 4'd0;
+							min_ctr_1 <= min_ctr_1 + 4'd1;
+						end
+					end
+				end
+			end
+		end
+		// manual
+		else begin
+			
+		end
+	end
 end
-// hours counter
+// hours counter - increments every hour at the seconds reset (24 hour time)
 always_ff @(posedge clock50MHz or negedge resetn) begin : hours_counter
-    
+	if (resetn == 1'b0) begin
+		hr_ctr_0 <= 4'd0;
+		hr_ctr_1 <= 4'd0;
+	end
+	else begin
+		// auto
+		if (~man_switch) begin
+			if (count_en) begin
+				if (sec_ctr_1 == 4'd5 && sec_ctr_0 == 4'd9) begin
+					if (min_ctr_1 == 4'd5 && min_ctr_0 == 4'd9) begin
+						if (hr_ctr_1 == 4'd2 && hr_ctr_0 == 4'4) begin
+							hr_ctr_0 <= 4'd0;
+							hr_ctr_1 <= 2'd0;
+						end
+					end
+					else begin
+						if (hr_ctr_0 < 4'd9)
+							hr_ctr_0 <= min_ctr_0 + 4'd1;
+						else if (min_ctr_0 == 4'd9) begin
+							hr_ctr_0 <= 4'd0;
+							hr_ctr_1 <= hr_ctr_1 + 4'd1;
+						end
+					end
+				end
+			end
+		end
+		// manual
+		else begin
+			
+		end
+	end
 end
 
 
