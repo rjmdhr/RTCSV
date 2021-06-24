@@ -8,11 +8,11 @@
 // note: switches are default logic 0 when in "down position"
 //       buttons are active low (logic high when not pressed)
 module rtc_driver(
-	input logic clock50MHz, //50 MHz clock
+	input logic clk50M, //50 MHz clock
 	input logic [2:0] push_button, //increase digit
 	input logic reset_button, // master reset
 	input logic man_switch, //manual clock set
-	output logic [5:0] seven_seg[7:0] //6 displays, arranged in pin format
+	output logic [5:0] seven_seg[7:0] //6 displays, arranged in pin format;
 	// 10-9-1-2-4-6-7 | g-f-e-d-c-b-a.
 
 	// total input|outputs = 6|48
@@ -24,11 +24,15 @@ logic resetn;
 parameter max_1kHz_cnt = 24999; //50E6/25E3 = 2000x ~/sec
 parameter max_1Hz_cnt = 24999999; //50E6/25E6 = 2x ~/sec
 
-logic [15:0] clock1kHz_div_count;
 logic [24:0] clock1Hz_div_count;
 logic clock1Hzbuf;
 logic clock1Hz;
 logic count_en; //20 ns pulse for counter
+
+logic [15:0] clock1kHz_div_count;
+logic clock1kHzbuf;
+logic clock1kHz;
+logic shiftreg_en; //20 ns pulse for shift register debouncers
 
 logic [3:0] sec_ctr_0; //1s column of seconds
 logic [3:0] sec_ctr_1; //10s column of seconds
@@ -43,11 +47,11 @@ logic [6:0] sevsegHH0, sevsegHH1, sevsegMM0, sevsegMM1, sevsegSS0, sevsegSS1;
 
 assign resetn = reset_button;
 
-/** clock divider */
-// add counter to reset clock every 0.5s
-always_ff @(posedge clock50MHz or negedge resetn) begin : clock_divider_1Hz
+/** Clock divider (1Hz) */
+// add counter to reset register every 0.5s
+always_ff @(posedge clk50M or negedge resetn) begin : clock_divider_1Hz
 	if (resetn == 1'b0) begin
-		clock1Hz_div_count <= 1'b0;
+		clock1Hz_div_count <= 16'd0;
 	end
 	else begin
 		if (clock1Hz_div_count < max_1Hz_cnt) begin
@@ -58,19 +62,19 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : clock_divider_1Hz
 		end
 	end
 end
-// invert clock every 0.5s
-always_ff @(posedge clock50MHz or negedge resetn) begin : clock_invert_1Hz
+// invert register every 0.5s
+always_ff @(posedge clk50M or negedge resetn) begin : clock_invert_1Hz
 	if (resetn == 1'b0) begin
 		clock1Hz <= 1'b0;
 	end
 	else begin
-		if (clock1Hz_div_count <= 23'd0) begin
+		if (clock1Hz_div_count == 23'd0) begin
 			clock1Hz <= ~clock1Hz;
 		end
 	end
 end
 // buffer the 1Hz clock for use as a 20ns "pulse"
-always_ff @(posedge clock50MHz or negedge resetn) begin : clock_buf_1Hz
+always_ff @(posedge clk50M or negedge resetn) begin : clock_buf_1Hz
 	if (resetn == 1'b0) begin
 		clock1Hzbuf <= 1'b0;
 	end
@@ -83,9 +87,54 @@ always_comb begin : counter_enable
 	count_en = clock1Hz && ~clock1Hzbuf; //logical, not bitwise
 end
 
+/** Clock divider (1kHz) */
+// counter to reset register every 0.5ms
+always_ff @(posedge clk50M or negedge resetn) begin : clock_divider_1kHz
+	if (resetn == 1'b0) begin
+		clock1kHz_div_count <= 16'd0;
+	end
+	else begin
+		if (clock1kHz_div_count < max_1kHz_cnt) begin
+			clock1kHz_div_count <= clock1kHz_div_count + 16'd1;
+		end
+		else begin
+			clock1kHz_div_count <= 16'd0;
+		end
+	end
+end
+// invert register every 0.5ms
+always_ff @(posedge clk50M or negedge resetn) begin : clock_invert_1kHz
+	if (resetn == 1'b0) begin
+		clock1kHz <= 1'b0
+	end
+	else begin
+		if (clock1kHz_div_count == 16'd0) begin
+			clock1kHz <= ~clock1kHz;
+		end
+	end
+end
+// buffer register for use as a 20ns "pulse"
+always_ff @(posedge clk50M or negedge resetn) begin : clock_buf_1kHz
+	if (resetn == 1'b0) begin
+		clock1Hzbuf <= 1'b0;
+	end
+	else begin
+		clock1kHzbuf <= clock1kHz;
+	end
+end
+// generate the 20ns pulse for the shift register debouncers
+always_comb begin : debounce_enable
+	debounce_en = clock1kHz && ~clock1kHzbuf; //logical, not bitwise
+end
+
+/* Button debouncers */
+always_ff @(posedge clk50M or negedge resetn) begin : button_debouncer
+	
+end
+
 /** HH:MM:SS counters */
 // seconds counter - increments and resets at 59
-always_ff @(posedge clock50MHz or negedge resetn) begin : seconds_counter
+always_ff @(posedge clk50M or negedge resetn) begin : seconds_counter
 	if (resetn == 1'b0) begin
 		sec_ctr_0 <= 4'd0;
 		sec_ctr_1 <= 4'd0;
@@ -94,15 +143,18 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : seconds_counter
 		// auto
 		if (~man_switch) begin
 			if (count_en) begin
-				if (sec_ctr_0 < 4'd9)
+				if (sec_ctr_0 < 4'd9) begin
 					sec_ctr_0 <= sec_ctr_0 + 4'd1;
-				else if (sec_ctr_0 == 4'd9) begin
+				end
+				else begin
 					if (sec_ctr_1 == 4'd5) begin
-						sec_ctr_0 <= 4'd0;
 						sec_ctr_1 <= 4'd0;
+						sec_ctr_0 <= 4'd0;
 					end
-					else
+					else begin
 						sec_ctr_1 <= sec_ctr_1 + 4'd1;
+						sec_ctr_0 <= 4'd0;
+					end
 				end
 			end
 		end
@@ -113,7 +165,7 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : seconds_counter
 	end
 end
 // minutes counter - increments every minute at the seconds reset
-always_ff @(posedge clock50MHz or negedge resetn) begin : minutes_counter
+always_ff @(posedge clk50M or negedge resetn) begin : minutes_counter
 	if (resetn == 1'b0) begin
 		min_ctr_0 <= 4'd0;
 		min_ctr_1 <= 4'd0;
@@ -123,16 +175,17 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : minutes_counter
 		if (~man_switch) begin
 			if (count_en) begin
 				if (sec_ctr_1 == 4'd5 && sec_ctr_0 == 4'd9) begin
-					if (min_ctr_1 == 4'd5 && min_ctr_0 == 4'd9) begin
-						min_ctr_0 <= 4'd0;
-						min_ctr_1 <= 4'd0;
+					if (min_ctr_0 < 4'd9) begin
+						min_ctr_0 <= min_ctr_0 + 4'd1;
 					end
 					else begin
-						if (min_ctr_0 < 4'd9)
-							min_ctr_0 <= min_ctr_0 + 4'd1;
-						else if (min_ctr_0 == 4'd9) begin
+						if (min_ctr_1 == 4'd5) begin
+							min_ctr_1 <= 4'd0;
 							min_ctr_0 <= 4'd0;
+						end
+						else begin
 							min_ctr_1 <= min_ctr_1 + 4'd1;
+							min_ctr_0 <= 4'd0;
 						end
 					end
 				end
@@ -145,7 +198,7 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : minutes_counter
 	end
 end
 // hours counter - increments every hour at the seconds reset (24 hour time)
-always_ff @(posedge clock50MHz or negedge resetn) begin : hours_counter
+always_ff @(posedge clk50M or negedge resetn) begin : hours_counter
 	if (resetn == 1'b0) begin
 		hr_ctr_0 <= 4'd0;
 		hr_ctr_1 <= 4'd0;
@@ -156,17 +209,18 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : hours_counter
 			if (count_en) begin
 				if (sec_ctr_1 == 4'd5 && sec_ctr_0 == 4'd9) begin
 					if (min_ctr_1 == 4'd5 && min_ctr_0 == 4'd9) begin
-						if (hr_ctr_1 == 4'd2 && hr_ctr_0 == 4'4) begin
-							hr_ctr_0 <= 4'd0;
+						if (hr_ctr_1 == 2'd2 && hr_ctr_0 == 4'd3) begin
 							hr_ctr_1 <= 2'd0;
-						end
-					end
-					else begin
-						if (hr_ctr_0 < 4'd9)
-							hr_ctr_0 <= min_ctr_0 + 4'd1;
-						else if (min_ctr_0 == 4'd9) begin
 							hr_ctr_0 <= 4'd0;
-							hr_ctr_1 <= hr_ctr_1 + 4'd1;
+						end
+						else begin
+							if (hr_ctr_0 < 4'd9) begin
+								hr_ctr_0 <= hr_ctr_0 + 4'd1;
+							end
+							else begin
+								hr_ctr_1 <= hr_ctr_1 + 2'd1;
+								hr_ctr_0 <= 4'd0;
+							end
 						end
 					end
 				end
@@ -178,15 +232,5 @@ always_ff @(posedge clock50MHz or negedge resetn) begin : hours_counter
 		end
 	end
 end
-
-
-/**
-// 1kHz clock divider (shift register button debouncing)
-always_ff @(posedge clock50MHz or negedge resetn) begin : clock_divider_1kHz
-	if (resetn == 1'b0) begin
-		clock1kHz_div_count <= 16'd0
-	end
-end
-*/
 
 endmodule
