@@ -14,7 +14,6 @@ module rtc_driver(
 	input logic man_sw, //manual clock set
 	output logic [5:0] sev_seg[7:0] //6 displays, arranged in pin format;
 	// 10-9-1-2-4-6-7 | g-f-e-d-c-b-a.
-
 	// total input|outputs = 6|48
 );
 
@@ -28,12 +27,21 @@ logic [15:0] cnt1kHz;
 logic shiften; //shift reg enable
 
 // counters (1 is 10s column, 0 is 1s column)
-logic [3:0] sec1, sec0;
-logic [3:0] min1, min0;
-logic [1:0] hr1, hr0;
+logic [2:0] sec1;
+logic [3:0] sec0;
+logic [2:0] min1;
+logic [3:0] min0;
+logic [1:0] hr1; 
+logic [3:0] hr0;
 
-//seven segment output registers
-//0 for 1s column, 1 for 10s column
+// shift register debouncers
+logic [9:0] shiftreg [2:0];
+logic pbstat [2:0];
+logic pbstatbuf [2:0];
+logic pben [2:0];
+
+// seven segment output registers
+// 0 for 1s column, 1 for 10s column
 logic [6:0] ssH0, ssH1, ssM0, ssM1, ssS0, ssS1;
 
 /** 1Hz clock enable for displays */
@@ -58,7 +66,7 @@ end
 always_ff @(posedge clk or negedge rst) begin
 	if (rst == 1'b0) begin
 		cnt1kHz <= 16'd0;
-		shiftten <= 1'b0;
+		shiften <= 1'b0;
 	end
 	else begin
 		if (cnt1Hz == div1kHz) begin
@@ -73,64 +81,106 @@ always_ff @(posedge clk or negedge rst) begin
 end
 
 /* Button debouncers */
-always_ff @(posedge clk50M or negedge resetn) begin
-	
+always_ff @(posedge clk or negedge rst) begin
+	if (rst == 1'b0) begin
+		shiftreg[0] <= 10'd0;
+		shiftreg[1] <= 10'd0;
+		shiftreg[2] <= 10'd0;
+	end
+	else begin
+		if (shiften) begin
+			shiftreg[0] <= {shiftreg[0][8:0], ~push_but[0]};
+			shiftreg[1] <= {shiftreg[1][8:0], ~push_but[1]};
+			shiftreg[2] <= {shiftreg[2][8:0], ~push_but[2]};
+		end
+	end
+end
+// eliminate transients and buff the push button status
+always_ff @(posedge clk or negedge rst) begin
+	if (rst == 1'b0) begin
+		pbstat <= {default:0};
+		pbstatbuf <= {default:0};
+	end
+	else begin
+		pbstat <= {|shiftreg[2],|shiftreg[1],|shiftreg[0]};
+		pbstatbuf <= {pbstat[2],pbstat[1],pbstat[0]};
+	end
+end
+// enable pulse for manual push buttons
+always_comb begin
+	pben[0] = pbstat[0]&&~pbstatbuf[0]; //seconds
+	pben[1] = pbstat[1]&&~pbstatbuf[1]; //minutes
+	pben[2] = pbstat[2]&&~pbstatbuf[2]; //hours
 end
 
 /** HH:MM:SS counters */
 // seconds counter - increments and resets at 59
-always_ff @(posedge clk50M or negedge resetn) begin : seconds_counter
-	if (resetn == 1'b0) begin
+always_ff @(posedge clk or negedge rst) begin : seconds_counter
+	if (rst == 1'b0) begin
 		sec0 <= 4'd0;
-		sec1 <= 4'd0;
+		sec1 <= 3'd0;
 	end
 	else begin
 		// auto
-		if (~man_switch) begin
-			if (count_en) begin
+		if (~man_sw) begin
+			if (cnten) begin
 				if (sec0 < 4'd9) begin
 					sec0 <= sec0 + 4'd1;
 				end
 				else begin
-					if (sec1 == 4'd5) begin
-						sec1 <= 4'd0;
+					if (sec1 == 3'd5) begin
+						sec1 <= 3'd0;
 						sec0 <= 4'd0;
 					end
 					else begin
-						sec1 <= sec1 + 4'd1;
+						sec1 <= sec1 + 3'd1;
 						sec0 <= 4'd0;
 					end
 				end
 			end
 		end
-		// manual
+		// manual (increment behaviour is equivalent)
 		else begin
-			
+			if (pben[0]) begin
+				if (sec0 < 4'd9) begin
+					sec0 <= sec0 + 4'd1;
+				end
+				else begin
+					if (sec1 == 3'd5) begin
+						sec1 <= 3'd0;
+						sec0 <= 4'd0;
+					end
+					else begin
+						sec1 <= sec1 + 3'd1;
+						sec0 <= 4'd0;
+					end
+				end
+			end
 		end
 	end
 end
 // minutes counter - increments every minute at the seconds reset
-always_ff @(posedge clk50M or negedge resetn) begin : minutes_counter
-	if (resetn == 1'b0) begin
-		min_ctr_0 <= 4'd0;
-		min_ctr_1 <= 4'd0;
+always_ff @(posedge clk or negedge rst) begin : minutes_counter
+	if (rst == 1'b0) begin
+		min0 <= 4'd0;
+		min1 <= 3'd0;
 	end
 	else begin
 		// auto
-		if (~man_switch) begin
-			if (count_en) begin
-				if (sec1 == 4'd5 && sec0 == 4'd9) begin
-					if (min_ctr_0 < 4'd9) begin
-						min_ctr_0 <= min_ctr_0 + 4'd1;
+		if (~man_sw) begin
+			if (cnten) begin
+				if (sec1 == 3'd5 && sec0 == 4'd9) begin
+					if (min0 < 4'd9) begin
+						min0 <= min0 + 4'd1;
 					end
 					else begin
-						if (min_ctr_1 == 4'd5) begin
-							min_ctr_1 <= 4'd0;
-							min_ctr_0 <= 4'd0;
+						if (min1 == 3'd5) begin
+							min1 <= 3'd0;
+							min0 <= 4'd0;
 						end
 						else begin
-							min_ctr_1 <= min_ctr_1 + 4'd1;
-							min_ctr_0 <= 4'd0;
+							min1 <= min1 + 3'd1;
+							min0 <= 4'd0;
 						end
 					end
 				end
@@ -138,33 +188,35 @@ always_ff @(posedge clk50M or negedge resetn) begin : minutes_counter
 		end
 		// manual
 		else begin
-			
+			if (pben[1]) begin
+				
+			end
 		end
 	end
 end
 // hours counter - increments every hour at the seconds reset (24 hour time)
-always_ff @(posedge clk50M or negedge resetn) begin : hours_counter
-	if (resetn == 1'b0) begin
-		hr_ctr_0 <= 4'd0;
-		hr_ctr_1 <= 4'd0;
+always_ff @(posedge clk or negedge rst) begin : hours_counter
+	if (rst == 1'b0) begin
+		hr0 <= 4'd0;
+		hr1 <= 2'd0;
 	end
 	else begin
 		// auto
-		if (~man_switch) begin
-			if (count_en) begin
-				if (sec1 == 4'd5 && sec0 == 4'd9) begin
-					if (min_ctr_1 == 4'd5 && min_ctr_0 == 4'd9) begin
-						if (hr_ctr_1 == 2'd2 && hr_ctr_0 == 4'd3) begin
-							hr_ctr_1 <= 2'd0;
-							hr_ctr_0 <= 4'd0;
+		if (~man_sw) begin
+			if (cnten) begin
+				if (sec1 == 3'd5 && sec0 == 4'd9) begin
+					if (min1 == 3'd5 && min0 == 4'd9) begin
+						if (hr1 == 2'd2 && hr0 == 4'd3) begin
+							hr1 <= 2'd0;
+							hr0 <= 4'd0;
 						end
 						else begin
-							if (hr_ctr_0 < 4'd9) begin
-								hr_ctr_0 <= hr_ctr_0 + 4'd1;
+							if (hr0 < 4'd9) begin
+								hr0 <= hr0 + 4'd1;
 							end
 							else begin
-								hr_ctr_1 <= hr_ctr_1 + 2'd1;
-								hr_ctr_0 <= 4'd0;
+								hr1 <= hr1 + 2'd1;
+								hr0 <= 4'd0;
 							end
 						end
 					end
