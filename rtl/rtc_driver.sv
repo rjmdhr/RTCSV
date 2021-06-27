@@ -4,15 +4,14 @@
 // the time in HH:MM:SS format. It also contains a toggle switch for a time set mode
 // and 3 push buttons to set the time columns. The accuracy will be limited to the
 // internal clock
-// DE2-115 SOC board
 // note: switches are default logic 0 when in "down position"
-//       buttons are active low (logic high when not pressed)
-module rtc_driver(
+//       buttons are active high (logic low when not pressed)
+module rtc_driver (
 	input logic clk, //50 MHz clock (20ns)
 	input logic [2:0] push_but, //increase digit
 	input logic rst, // master reset
 	input logic man_sw, //manual clock set
-	output logic [5:0] sev_seg[7:0] //6 displays, arranged in pin format;
+	output logic [5:0] sev_seg[6:0] //6 displays, arranged in pin format;
 	// 10-9-1-2-4-6-7 | g-f-e-d-c-b-a.
 	// total input|outputs = 6|48
 );
@@ -27,12 +26,12 @@ logic [15:0] cnt1kHz;
 logic shiften; //shift reg enable
 
 // counters (1 is 10s column, 0 is 1s column)
-logic [2:0] sec1;
 logic [3:0] sec0;
-logic [2:0] min1;
+logic [2:0] sec1;
 logic [3:0] min0;
-logic [1:0] hr1; 
+logic [2:0] min1;
 logic [3:0] hr0;
+logic [1:0] hr1;
 
 // shift register debouncers
 logic [9:0] shiftreg [2:0];
@@ -237,7 +236,7 @@ always_ff @(posedge clk or negedge rst) begin : hours_counter
 		end
 		// manual (increments need not rely on minutes & seconds turnover)
 		else begin
-			if (pb[2]) begin
+			if (pben[2]) begin
 				if (hr1 == 2'd2 && hr0 == 4'd3) begin
 					hr1 <= 2'd0;
 					hr0 <= 4'd0;
@@ -256,4 +255,41 @@ always_ff @(posedge clk or negedge rst) begin : hours_counter
 	end
 end
 
-endmodule
+sev_seg_dec second0 (
+	.dec_val(sec0[3:0]),
+	.ss_val(ssS0[6:0])
+);
+
+sev_seg_dec second1 (
+	.dec_val(sec1[2:0]),
+	.ss_val(ssS1[6:0])
+);
+
+sev_seg_dec minute0 (
+	.dec_val(min0[3:0]),
+	.ss_val(ssM0[6:0])
+);
+
+sev_seg_dec minute1 (
+	.dec_val(min1[2:0]),
+	.ss_val(ssM1[6:0])
+);
+
+sev_seg_dec hour0 (
+	.dec_val(hr0[3:0]),
+	.ss_val(ssH0[6:0])
+);
+
+sev_seg_dec hour1 (
+	.dec_val(hr1[1:0]),
+	.ss_val(ssH1[6:0])
+);
+
+assign sev_seg[0] = ssH0;
+assign sev_seg[1] = ssH1;
+assign sev_seg[2] = ssM0;
+assign sev_seg[3] = ssM1;
+assign sev_seg[4] = ssH0;
+assign sev_seg[5] = ssH1;
+
+endmodule 
