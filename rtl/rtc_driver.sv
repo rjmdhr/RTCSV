@@ -186,10 +186,22 @@ always_ff @(posedge clk or negedge rst) begin : minutes_counter
 				end
 			end
 		end
-		// manual
+		// manual (increments need not rely on seconds turnover ~ 59->0)
 		else begin
 			if (pben[1]) begin
-				
+				if (min0 < 4'd9) begin
+					min0 <= min0 + 4'd1;
+				end
+				else begin
+					if (min1 == 3'd5) begin
+						min1 <= 3'd0;
+						min0 <= 4'd0;
+					end
+					else begin
+						min1 <= min1 + 3'd1;
+						min0 <= 4'd0;
+					end
+				end
 			end
 		end
 	end
@@ -223,9 +235,23 @@ always_ff @(posedge clk or negedge rst) begin : hours_counter
 				end
 			end
 		end
-		// manual
+		// manual (increments need not rely on minutes & seconds turnover)
 		else begin
-			
+			if (pb[2]) begin
+				if (hr1 == 2'd2 && hr0 == 4'd3) begin
+					hr1 <= 2'd0;
+					hr0 <= 4'd0;
+				end
+				else begin
+					if (hr0 < 4'd9) begin
+						hr0 <= hr0 + 4'd1;
+					end
+					else begin
+						hr1 <= hr1 + 2'd1;
+						hr0 <= 4'd0;
+					end
+				end
+			end
 		end
 	end
 end
