@@ -1,4 +1,4 @@
-`timescale 1ns/100ps
+`timescale 1ns/1ns
 
 module sev_seg_dec (
     input logic [3:0] dec_val, //decimal

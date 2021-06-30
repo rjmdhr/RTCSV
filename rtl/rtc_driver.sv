@@ -1,4 +1,4 @@
-`timescale 1ns/100ps
+`timescale 1ns/1ns
 
 // This module takes a reference clock and drives 6 7-segment displays to display
 // the time in HH:MM:SS format. It also contains a toggle switch for a time set mode
@@ -255,6 +255,7 @@ always_ff @(posedge clk or negedge rst) begin : hours_counter
 	end
 end
 
+// seven segment decoder instantiations
 sev_seg_dec second0 (
 	.dec_val(sec0[3:0]),
 	.ss_val(ssS0[6:0])
@@ -285,6 +286,7 @@ sev_seg_dec hour1 (
 	.ss_val(ssH1[6:0])
 );
 
+// assign output logic
 assign sev_seg[0] = ssH0;
 assign sev_seg[1] = ssH1;
 assign sev_seg[2] = ssM0;
