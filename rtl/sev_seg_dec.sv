@@ -1,5 +1,7 @@
 `timescale 1ns/1ns
 
+/** This module takes a decimal value from 0-15 and decodes it into a pinout for
+ a single seven segment display */
 module sev_seg_dec (
     input logic [3:0] dec_val, //decimal
     output logic [6:0] ss_val //10-9-1-2-4-6-7|g-f-e-d-c-b-a (common anode - active low)
@@ -20,5 +22,15 @@ always_comb begin
         default: ss_val = 7'b1111111; //off
     endcase
 end
+
+/**
+     ---a---
+    |       |
+    f       b
+     ---g---
+    |       |
+    e       c
+     ---d---
+*/
 
 endmodule 

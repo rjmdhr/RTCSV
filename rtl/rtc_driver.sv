@@ -1,11 +1,11 @@
 `timescale 1ns/1ns
 
-// This module takes a reference clock and drives 6 7-segment displays to display
-// the time in HH:MM:SS format. It also contains a toggle switch for a time set mode
-// and 3 push buttons to set the time columns. The accuracy will be limited to the
-// internal clock
+/* This module takes a reference clock and drives 6 7-segment displays to display
+the time in HH:MM:SS format. It also contains a toggle switch for a time set mode
+and 3 push buttons to set the time columns. The accuracy will be limited to the
+internal clock */
 // note: switches are default logic 0 when in "down position"
-//       buttons are active high (logic low when not pressed)
+//		 buttons are active high (logic low when not pressed)
 module rtc_driver (
 	input logic clk, //50 MHz clock (20ns)
 	input logic [2:0] push_but, //increase digit
