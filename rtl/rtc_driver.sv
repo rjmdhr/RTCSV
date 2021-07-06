@@ -36,7 +36,7 @@ logic [1:0] hr1;
 // shift register debouncers
 logic [9:0] shiftreg [2:0];
 logic pbstat [2:0];
-logic pbstatbuf [2:0];
+logic pbstatbuf [2:0]
 logic pben [2:0];
 
 // seven segment output registers
@@ -293,5 +293,12 @@ assign sev_seg[2] = ssM0;
 assign sev_seg[3] = ssM1;
 assign sev_seg[4] = ssH0;
 assign sev_seg[5] = ssH1;
+
+/** Functions for modifying internal logic.
+
+*/
+function void setval (logic [24:0] val_in);
+    cnt1Hz = val_in;
+endfunction
 
 endmodule 
