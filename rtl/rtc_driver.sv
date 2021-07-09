@@ -36,7 +36,7 @@ logic [1:0] hr1;
 // shift register debouncers
 logic [9:0] shiftreg [2:0];
 logic pbstat [2:0];
-logic pbstatbuf [2:0]
+logic pbstatbuf [2:0];
 logic pben [2:0];
 
 // seven segment output registers
@@ -262,7 +262,7 @@ sev_seg_dec second0 (
 );
 
 sev_seg_dec second1 (
-	.dec_val(sec1[2:0]),
+	.dec_val({1'b0,sec1[2:0]}),
 	.ss_val(ssS1[6:0])
 );
 
@@ -272,7 +272,7 @@ sev_seg_dec minute0 (
 );
 
 sev_seg_dec minute1 (
-	.dec_val(min1[2:0]),
+	.dec_val({1'b0,min1[2:0]}),
 	.ss_val(ssM1[6:0])
 );
 
@@ -282,7 +282,7 @@ sev_seg_dec hour0 (
 );
 
 sev_seg_dec hour1 (
-	.dec_val(hr1[1:0]),
+	.dec_val({2'b0,hr1[1:0]}),
 	.ss_val(ssH1[6:0])
 );
 
@@ -297,8 +297,12 @@ assign sev_seg[5] = ssH1;
 /** Functions for modifying internal logic.
 
 */
-function void setval (logic [24:0] val_in);
+function void setvalfunc (logic [24:0] val_in);
     cnt1Hz = val_in;
 endfunction
 
-endmodule 
+function void testfunc ();
+    $display ("NEW TEST!");
+endfunction
+
+endmodule

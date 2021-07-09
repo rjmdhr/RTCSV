@@ -10,15 +10,15 @@ cModel Technology
 Z0 dE:/University/Projects/RTCSV
 vrtc_driver
 Z1 DXx6 sv_std 3 std 0 22 WmjPaeP=7F5?QFXzJ>D[Q2
-!s110 1625499570
+!s110 1625604503
 !i10b 1
-!s100 ae6SYa1Y872NSNPKlL7ji0
-I9gb_Fe:_[EkI5jTj08I=Z2
+!s100 8z@kzDELCd4El3I^;egLK3
+IUT;g47]zaMYMJ`POe_in>1
 Z2 VDg1SIo80bB@j0V0VzS_@n1
 !s105 rtc_driver_sv_unit
 S1
 R0
-w1625092726
+w1625601362
 8E:/University/Projects/RTCSV/rtl/rtc_driver.sv
 FE:/University/Projects/RTCSV/rtl/rtc_driver.sv
 L0 9
@@ -26,23 +26,47 @@ Z3 OP;L;10.4a;61
 r1
 !s85 0
 31
-!s108 1625499570.000000
+!s108 1625604502.000000
 !s107 E:/University/Projects/RTCSV/rtl/rtc_driver.sv|
 !s90 -reportprogress|300|-work|work|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|-O0|E:/University/Projects/RTCSV/rtl/rtc_driver.sv|
 !s101 -O0
 !i113 1
 Z4 o-work work -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact -O0
+vrtc_driver_tb
+R1
+!s110 1625793823
+!i10b 1
+!s100 kTa`5WE^Yh6ii`35Jz;ak2
+If6G<lPXBG[nDV_cV@CJ<P1
+R2
+!s105 rtc_driver_tb_sv_unit
+S1
+R0
+w1625793820
+8E:/University/Projects/RTCSV/tb/rtc_driver_tb.sv
+FE:/University/Projects/RTCSV/tb/rtc_driver_tb.sv
+L0 3
+R3
+r1
+!s85 0
+31
+!s108 1625793823.000000
+!s107 E:/University/Projects/RTCSV/tb/rtc_driver_tb.sv|
+!s90 -reportprogress|300|-work|work|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|-O0|E:/University/Projects/RTCSV/tb/rtc_driver_tb.sv|
+!s101 -O0
+!i113 1
+R4
 vsev_seg_dec
 R1
-!s110 1625499573
+!s110 1625579549
 !i10b 1
-!s100 fO0MVZ[9JQ^Ml@l>PWn8>2
-I;XAB85K>=W;V[1c=:YOId0
+!s100 azLZlnL8Un:`BJ;GM@Xl83
+IIK8EPc4P[^kliOgOBV4=S1
 R2
 !s105 sev_seg_dec_sv_unit
 S1
 R0
-w1625093158
+w1625522338
 8E:/University/Projects/RTCSV/rtl/sev_seg_dec.sv
 FE:/University/Projects/RTCSV/rtl/sev_seg_dec.sv
 L0 5
@@ -50,23 +74,23 @@ R3
 r1
 !s85 0
 31
-!s108 1625499572.000000
+!s108 1625579548.000000
 !s107 E:/University/Projects/RTCSV/rtl/sev_seg_dec.sv|
-!s90 -reportprogress|300|-work|work|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|-O0|E:/University/Projects/RTCSV/rtl/sev_seg_dec.sv|
+!s90 -reportprogress|300|-work|work|E:/University/Projects/RTCSV/rtl/sev_seg_dec.sv|
 !s101 -O0
 !i113 1
 R4
 vsev_seg_dec_tb
 R1
-!s110 1625524391
+!s110 1625581429
 !i10b 1
-!s100 D7ci7LoM;f91QTAi[ce;W1
-IMiV9f7[L`dJS7Ej@L:eRc0
+!s100 hfPgiD=1Vb@38iH@XO0GN0
+IICQ?YHXE]=8dXY`j=V[[11
 R2
 !s105 sev_seg_dec_tb_sv_unit
 S1
 R0
-w1625524368
+w1625581426
 8E:/University/Projects/RTCSV/tb/sev_seg_dec_tb.sv
 FE:/University/Projects/RTCSV/tb/sev_seg_dec_tb.sv
 L0 8
@@ -74,9 +98,9 @@ R3
 r1
 !s85 0
 31
-!s108 1625524391.000000
+!s108 1625581429.000000
 !s107 E:/University/Projects/RTCSV/tb/sev_seg_dec_tb.sv|
-!s90 -reportprogress|300|-work|work|E:/University/Projects/RTCSV/tb/sev_seg_dec_tb.sv|
+!s90 -reportprogress|300|-work|work|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|-O0|E:/University/Projects/RTCSV/tb/sev_seg_dec_tb.sv|
 !s101 -O0
 !i113 1
 R4
