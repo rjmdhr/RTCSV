@@ -68,7 +68,7 @@ always_ff @(posedge clk or negedge rst) begin
 		shiften <= 1'b0;
 	end
 	else begin
-		if (cnt1Hz == div1kHz) begin
+		if (cnt1kHz == div1kHz) begin
 			shiften <= 1'b1;
 			cnt1kHz <= 16'd0;
 		end
@@ -294,15 +294,13 @@ assign sev_seg[3] = ssM1;
 assign sev_seg[4] = ssH0;
 assign sev_seg[5] = ssH1;
 
-/** Functions for modifying internal logic.
+/* Functions for modifying internal logic */
 
-*/
-function void setvalfunc (logic [24:0] val_in);
-    cnt1Hz = val_in;
-endfunction
-
-function void testfunc ();
-    $display ("NEW TEST!");
+// For some reason, modification of signals that are driven
+// in combinational blocks are not allowed. This function 
+// manually overrides that.
+function void setpben (logic in [2:0]);
+	pben = {in[2],in[1],in[0]};
 endfunction
 
 endmodule
