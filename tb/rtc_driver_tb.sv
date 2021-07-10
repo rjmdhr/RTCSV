@@ -43,9 +43,9 @@ module rtc_driver_tb;
 		UUT.cnt1kHz = UUT.div1kHz - 5;
 
 		// test manual push buttons while manual is off (active low)
-		push_but = {default:0};
+		push_but = {1'b0,1'b0,1'b0};
 		#130;
-		push_but = {default:1};
+		push_but = {1'b1,1'b1,1'b1};
 
 		// test manual mode (at 439320ns, time counters reset to 0)
 		#439160; //439320-130-40
