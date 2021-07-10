@@ -4,7 +4,7 @@
 "typical" conditions and edge cases. It is not meant to formally verify
 the design, but to show the waveforms model that the blocks work as intended.
 Also it is unreasonable to simulate and let the count enable reset 
-after 1Hz (1E9 ns x 1440mins), so the counters were enabled every other 
+after 1Hz (1E9 ns x 86400 s), so the counters were enabled every other 
 clock cycle. The accuracy of 1Hz clock should rather be tested on an actual 
 FPGA with a frequency counter.
 */
