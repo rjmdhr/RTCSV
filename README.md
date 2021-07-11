@@ -14,4 +14,4 @@ A Real Time Clock in System Verilog, that drives 6 seven segment displays. Initi
 ## Improvements
 - Turn displays off when unecessary (08:30:57 should be 8:30:57)
 - Add ability to decrease digits in manual mode
-- Set the actual time via a compatible communications interface through an external module
+- Automatically set the actual time via a compatible communications interface through an external module
